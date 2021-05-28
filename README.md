@@ -2,6 +2,8 @@
 
 ## about
 
-Its a fork project from [CMRESHandler](https://github.com/cmanaha/python-elasticsearch-logger) module.
+It is a derivated project from [CMRESHandler](https://github.com/cmanaha/python-elasticsearch-logger) module.
 
-Thanks for it Carlos Manzanedo Rueda!
+## thanks
+
+Thank you for share it, Carlos Manzanedo Rueda!
