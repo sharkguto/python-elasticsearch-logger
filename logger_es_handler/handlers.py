@@ -23,10 +23,10 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
-from cmreslogging.serializers import CMRESSerializer
+from logger_es_handler.serializers import ESSerializer
 
 
-class CMRESHandler(logging.Handler):
+class ESHandler(logging.Handler):
     """Elasticsearch log handler
 
     Allows to log to elasticsearch into json format.
@@ -158,16 +158,16 @@ class CMRESHandler(logging.Handler):
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
                     in the format ```[{'host':'host1','port':9200}, {'host':'host2','port':9200}]``` to
                     make sure the client supports failover of one of the instertion nodes
-        :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
+        :param auth_details: When ```ESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
                     a tuple of string with the user and password that will be used to authenticate against
                     the Elasticsearch servers, for example```('User','Password')
-        :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_access_key: When ```ESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS key id of the  the AWS IAM user
-        :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_secret_key: When ```ESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS secret key of the  the AWS IAM user
-        :param aws_region: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_region: When ```ESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
-        :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
+        :param auth_type: The authentication type to be used in the connection ```ESHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
         :param use_ssl: A boolean that defines if the communications should use SSL encrypted communication
         :param verify_ssl: A boolean that defines if the SSL certificates are validated or not
@@ -187,7 +187,7 @@ class CMRESHandler(logging.Handler):
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
         :param disabled_fields: A tuple, by default empty, but if you want to remove any key , put here
-        :return: A ready to be used CMRESHandler.
+        :return: A ready to be used ESHandler.
         """
         logging.Handler.__init__(self)
 
@@ -218,10 +218,10 @@ class CMRESHandler(logging.Handler):
         self._buffer = []
         self._buffer_lock = Lock()
         self._timer = None
-        self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[
+        self._index_name_func = ESHandler._INDEX_FREQUENCY_FUNCION_DICT[
             self.index_name_frequency
         ]
-        self.serializer = CMRESSerializer()
+        self.serializer = ESSerializer()
 
     def __schedule_flush(self):
         if self._timer is None:
@@ -230,7 +230,7 @@ class CMRESHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
-        if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
+        if self.auth_type == ESHandler.AuthType.NO_AUTH:
             if self._client is None:
                 self._client = Elasticsearch(
                     hosts=self.hosts,
@@ -241,7 +241,7 @@ class CMRESHandler(logging.Handler):
                 )
             return self._client
 
-        if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
+        if self.auth_type == ESHandler.AuthType.BASIC_AUTH:
             if self._client is None:
                 return Elasticsearch(
                     hosts=self.hosts,
@@ -253,7 +253,7 @@ class CMRESHandler(logging.Handler):
                 )
             return self._client
 
-        if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
+        if self.auth_type == ESHandler.AuthType.KERBEROS_AUTH:
             if not CMR_KERBEROS_SUPPORTED:
                 raise EnvironmentError(
                     'Kerberos module not available. Please install "requests-kerberos"'
@@ -268,7 +268,7 @@ class CMRESHandler(logging.Handler):
                 serializer=self.serializer,
             )
 
-        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
+        if self.auth_type == ESHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
                 raise EnvironmentError(
                     'AWS4Auth not available. Please install "requests-aws4auth"'
@@ -372,7 +372,7 @@ class CMRESHandler(logging.Handler):
 
         rec = self.es_additional_fields.copy()
         for key, value in record.__dict__.items():
-            if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
+            if key not in ESHandler.__LOGGING_FILTER_FIELDS:
                 if key == "args":
                     value = tuple(str(arg) for arg in value)
                 rec[key] = "" if value is None else value
