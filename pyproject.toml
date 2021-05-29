@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "logger-es-handler"
-version = "0.1.0"
-description = "ES handler derivated from "
+version = "0.1.1"
+description = "ES handler for logging module "
 authors = ["Gustavo Freitas <gustavo@gmf-tech.com>"]
 
 [tool.poetry.dependencies]
